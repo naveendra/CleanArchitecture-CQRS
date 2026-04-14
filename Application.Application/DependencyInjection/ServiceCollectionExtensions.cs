@@ -1,5 +1,4 @@
-﻿using Application.Application.Interfaces.Services;
-using Application.Application.Services;
+﻿
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ namespace Application.Application.DependencyInjection
         {
 
             // Services
-            services.AddScoped<IEmployeeService, EmployeeService>();
+            //services.AddScoped<IEmployeeService, EmployeeService>();
             
 
             return services;

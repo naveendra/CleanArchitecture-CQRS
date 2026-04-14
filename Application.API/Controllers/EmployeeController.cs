@@ -1,6 +1,10 @@
 ﻿using Application.Application.Dtos;
-using Application.Application.Interfaces.Services;
-using Application.Application.Services;
+using Application.Application.Features.Employees.Commands.CreateEmployee;
+using Application.Application.Features.Employees.Commands.DeleteEmployee;
+using Application.Application.Features.Employees.Commands.UpdateEmployee;
+using Application.Application.Features.Employees.Queries.GetAllEmployees;
+using Application.Application.Features.Employees.Queries.GetEmployeeById;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,18 +14,18 @@ namespace Application.API.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private readonly IEmployeeService _employeeService;
+        private readonly IMediator _mediator;
 
-        public EmployeeController(IEmployeeService employeeService)
+        public EmployeeController(IMediator mediator)
         {
-            _employeeService = employeeService;
+            _mediator = mediator;
         }
 
         [HttpGet]
         [Route("GetAll")]
-        public async Task<IActionResult> GetAll([FromQuery] int page=1, [FromQuery] int pageSize=10)
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
         {
-            var employees = await _employeeService.GetAllEmployeesAsync(page, pageSize);
+            var employees = await _mediator.Send(new GetAllEmployeesQuery(page, pageSize));
             return Ok(employees);
         }
 
@@ -29,7 +33,7 @@ namespace Application.API.Controllers
         [Route("GetById/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var employee =await _employeeService.GetEmployeeByIdAsync(id);
+            var employee =await _mediator.Send( new GetEmployeeByIdQuery(id));
             if (employee == null)
             {
                 return NotFound();
@@ -39,9 +43,9 @@ namespace Application.API.Controllers
 
         [HttpPost]
         [Route("Create")]
-        public async Task<IActionResult> Create([FromBody] CreateEmployeeDto createEmployeeDto)
+        public async Task<IActionResult> Create(CreateEmployeeCommand command)
         {
-            await _employeeService.CreateEmployeeAsync(createEmployeeDto);
+            await _mediator.Send(command);
 
             return Ok();
             
@@ -50,9 +54,9 @@ namespace Application.API.Controllers
 
         [HttpPut]
         [Route("Update/{id}")]
-        public  async Task<IActionResult> Update(int id, [FromBody] UpdateEmployeeDto updateEmployeeDto)
+        public  async Task<IActionResult> Update(int id, UpdateEmployeeCommand command)
         {
-            await  _employeeService.UpdateEmployeeAsync(id, updateEmployeeDto);
+            await  _mediator.Send(command with { Id = id } );
            
             return Ok();
         }
@@ -61,7 +65,7 @@ namespace Application.API.Controllers
         [Route("Delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _employeeService.DeleteEmployeeAsync(id);
+            await _mediator.Send(new DeleteEmployeeCommand(id));
             return Ok();
         }
     }

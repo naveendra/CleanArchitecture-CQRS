@@ -21,80 +21,47 @@ namespace Application.Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public async Task CreateEmployeeAsync(CreateEmployeeDto createEmployeeDto )
+        // ✅ CREATE
+        public async Task AddAsync(Employee employee)
         {
-            await _context.Employees.AddAsync(new Employee
-            {
-                
-                Name = createEmployeeDto.Name,
-                EmployeeId = createEmployeeDto.EmployeeId,
-                Address = createEmployeeDto.address,
-                City = createEmployeeDto.city,
-                State = createEmployeeDto.state,
-                IsDeleted = false,
-                CreatedDate = DateTime.Now,
-            });
-            await _context.SaveChangesAsync();
-
-        }
-
-        public async Task DeleteEmployeeAsync(int id)
-        {
-                var res = await _context.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-            if (res != null) { 
-             res.IsDeleted = true;
-            }
+            await _context.Employees.AddAsync(employee);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<GetEmployeeDto>> GetAllEmployeesAsync(int page, int pageSize)
+        // ✅ GET BY ID
+        public async Task<Employee?> GetByIdAsync(int id)
         {
-            var data = await _context.Employees
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(e => new GetEmployeeDto
-        {
-            Id = e.Id,
-            Name = e.Name,
-            EmployeeId = e.EmployeeId,
-            Address = e.Address,
-            City = e.City,
-            State = e.State,
-        })
-        .AsNoTracking()
-        .ToListAsync();
-
-          
-
-            return data;         
-           
+            return await _context.Employees
+                .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
         }
 
-        public Task<GetEmployeeDto?> GetEmployeeByIdAsync(int id)
+        // ✅ GET ALL (with pagination)
+        public async Task<List<Employee>> GetAllAsync(int page, int pageSize)
         {
-            return _context.Employees.Where(e => e.Id == id && !e.IsDeleted).Select(e => new GetEmployeeDto
-            {
-                Id = e.Id,
-                Name = e.Name,
-                EmployeeId = e.EmployeeId,
-                Address = e.Address,
-                City = e.City,
-                State = e.State,
-            }).AsNoTracking().FirstOrDefaultAsync();
+            return await _context.Employees
+                .Where(e => !e.IsDeleted)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
         }
 
-        public async Task UpdateEmployeeAsync(int id, UpdateEmployeeDto updateEmployeeDto)
+        // ✅ UPDATE
+        public async Task UpdateAsync(Employee employee)
         {
-            var res = _context.Employees.AsNoTracking().FirstOrDefault(e => e.Id == id);
-            if (res != null)
-            {
-                res.Name = updateEmployeeDto.Name;
-                res.EmployeeId = updateEmployeeDto.EmployeeId;
-                res.Address = updateEmployeeDto.Address;
-                res.City = updateEmployeeDto.City;
-                res.State = updateEmployeeDto.State;                       
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+        }
 
-            }
+        // ✅ DELETE (Soft Delete ✅ best practice)
+        public async Task DeleteAsync(int id)
+        {
+            var employee = await _context.Employees.FindAsync(id);
+
+            if (employee == null) return;
+
+            employee.IsDeleted = true;
+
+            _context.Employees.Update(employee);
             await _context.SaveChangesAsync();
         }
     }

@@ -2,8 +2,6 @@ using Application.API.Filters;
 using Application.API.Middleware;
 using Application.API.Validators;
 using Application.Application.Interfaces.Repositories;
-using Application.Application.Interfaces.Services;
-using Application.Application.Services;
 using Application.Infrastructure.Persistence.Context;
 using Application.Infrastructure.Persistence.Repositories;
 using FluentValidation;
